@@ -1,0 +1,42 @@
+version: '3.9'
+
+services:
+  backend-nestjs:
+    build:
+      context: ./backend-nestjs
+      dockerfile: Dockerfile
+    container_name: backend-nestjs
+    restart: always
+    ports:
+      - '3000:3000'
+    env_file:
+      - backend-nestjs/.env
+    volumes:
+      - ./backend-nestjs:/app
+      - /app/node_modules
+    command: npm run start:dev
+    networks:
+      - backend-nestjs-network
+      - rabbitmq-network
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - '5672:5672'   # Porta do protocolo AMQP
+      - '15672:15672' # Porta do painel de administração
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    networks:
+      - rabbitmq-network
+
+volumes:
+  pgdata:
+
+networks:
+  backend-nestjs-network:
+  rabbitmq-network:
