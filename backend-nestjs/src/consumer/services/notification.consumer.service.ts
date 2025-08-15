@@ -29,19 +29,11 @@ export class NotificationConsumer implements OnModuleInit, OnModuleDestroy {
         this.logger.log(`Mensagem recebida: ${content}`);
 
         let mensagemId: string;
-        /*try {
-          const parsed = JSON.parse(content);
-          mensagemId = parsed.mensagemId;
-        } catch {
-          this.logger.error('Mensagem inválida, ignorando.');
-          this.channel.ack(msg);
-          return;
-        } */
 
         try {
           const parsed = JSON.parse(content);
           mensagemId = parsed.mensagemId || parsed.messageId;
-          // ...se quiser, trate conteudoMensagem também...
+
         } catch {
           this.logger.error('Mensagem inválida, ignorando.');
           this.channel.ack(msg);
@@ -53,18 +45,13 @@ export class NotificationConsumer implements OnModuleInit, OnModuleDestroy {
           return;
         }
 
-
-        // Simula processamento assíncrono de 1-2 segundos
         await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
 
-        // Gera status aleatório
         const random = Math.floor(Math.random() * 10) + 1;
         const status = random <= 2 ? 'falha' : 'sucesso';
 
-        // Armazena status no serviço singleton
         this.statusStore.setStatus(mensagemId, status);
 
-        // Publica status na fila de status
         const statusPayload = JSON.stringify({ mensagemId, status });
         await this.channel.sendToQueue(this.statusQueue, Buffer.from(statusPayload), { persistent: true });
 
